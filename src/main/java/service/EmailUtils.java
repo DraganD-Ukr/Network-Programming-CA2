@@ -21,37 +21,4 @@ public class EmailUtils {
     public static final String DELIMITER = "%%";
     public static final String EMAIL_DELIMITER = "##";
 
-    // RESPONSES
-    /**
-     * Generic success status.
-     */
-    public static final String SUCCESS = "SUCCESS";
-
-
-//    Fail responses:
-
-//    Register responses
-    public static final String WRONG_PASSWORD_FORMAT = "WRONG_PASSWORD_FORMAT";
-    public static final String USER_ALREADY_EXISTS = "USER_ALREADY_EXISTS";
-    public static final String PASSWORDS_DOESNT_MATCH = "PASSWORDS_DOESNT_MATCH";
-
-//    Login response
-    public static final String INVALID_USERNAME_OR_PASSWORD = "INVALID_USERNAME_OR_PASSWORD";
-    public static final String USER_ALREADY_LOGGED = "USER_ALREADY_LOGGED";
-
-//    Send email response
-    public static final String RECIPIENT_NOT_FOUND = "RECIPIENT_NOT_FOUND";
-
-//    Get received and sent emails response
-    public static final String NO_EMAILS_FOUND = "NO_EMAILS_FOUND";
-
-//    Read email response
-    public static final String INVALID_ID = "INVALID_ID";
-
-//    Logout response
-    public static final String ALREADY_LOGGED_OUT = "ALREADY_LOGGED_OUT";
-
-//    General malformed response:
-    public static final String INVALID = "INVALID";
-
 }
