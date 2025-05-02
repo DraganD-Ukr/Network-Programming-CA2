@@ -3,7 +3,6 @@ package model.email;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 
 @Data
@@ -22,12 +21,12 @@ public class Email {
     /**
      * Unique identifier for the sender.
      */
-    private UUID senderId;
+    private String senderUsername;
 
     /**
      * Unique identifier for the recipient.
      */
-    private UUID recipientId;
+    private String recipientUsername;
 
     /**
      * Subject of the email.

@@ -28,10 +28,6 @@ public class User {
      */
     private String password;
 
-    /**
-     * Flag indicating whether the user is logged in.
-     */
-    private boolean loggedIn;
 
 
 }
