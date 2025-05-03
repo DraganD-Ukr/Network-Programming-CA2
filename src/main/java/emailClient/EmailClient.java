@@ -144,6 +144,9 @@ public class EmailClient {
                 handleSearchSent(parts.length > 1 ? parts[1] : "");
             } else if (verb.equals("RETRIEVE")) {
                 handleRetrieve(parts.length > 1 ? parts[1].trim() : "");
+            } else if (verb.equals("LOGOUT")) {
+                handleLogout();
+                break;
             } else {
                 sendLine(cmd);
             }
@@ -309,5 +312,16 @@ public class EmailClient {
         } catch (IOException e) {
             System.err.println("Error reading from server: " + e.getMessage());
         }
+    }
+
+    private void handleLogout() throws IOException {
+        sendLine("LOGOUT");
+        System.out.println("Logging out...");
+        String response = reader.readLine();
+        if (response == null) {
+            System.out.println("Error: No response from server.");
+            return;
+        }
+        System.out.println(response);
     }
 }
