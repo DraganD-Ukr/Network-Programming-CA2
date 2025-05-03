@@ -23,11 +23,11 @@ public class EmailHandler {
     }
 
     public boolean handleSend(String username, String currentUser, BufferedWriter out, BufferedReader in) throws Exception {
-        UUID senderId = userManager.getUser(username) == null
+        String senderId = userManager.getUser(username) == null
                 ? null
-                : userManager.getUser(currentUser).getId();
+                : String.valueOf(userManager.getUser(currentUser).getId());
 
-        UUID recipientId = userManager.getUser(username).getId();
+        String recipientId = String.valueOf(userManager.getUser(username).getId());
         if (senderId == null || recipientId == null) {
             out.write("ERROR Unknown recipient\n");
             out.flush();
