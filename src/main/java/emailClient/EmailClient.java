@@ -142,6 +142,8 @@ public class EmailClient {
                 handleSent();
             } else if (verb.equals("SEARCH_SENT")) {
                 handleSearchSent(parts.length > 1 ? parts[1] : "");
+            } else if (verb.equals("RETRIEVE")) {
+                handleRetrieve(parts.length > 1 ? parts[1].trim() : "");
             } else {
                 sendLine(cmd);
             }
@@ -278,6 +280,26 @@ public class EmailClient {
         sendLine("SEARCH_SENT " + search);
 
         System.out.println("Searching sent emails...");
+
+        String response;
+        try {
+            while ((response = reader.readLine()) != null && !response.equals(".")) {
+                System.out.println(response);
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading from server: " + e.getMessage());
+        }
+    }
+
+    private void handleRetrieve(String emailId) throws IOException {
+        if (emailId == null || emailId.isEmpty()) {
+            System.out.println("Usage: RETRIEVE <email ID>");
+            return;
+        }
+
+        sendLine("RETRIEVE " + emailId);
+
+        System.out.println("Fetching email...");
 
         String response;
         try {
