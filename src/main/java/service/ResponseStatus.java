@@ -41,7 +41,7 @@ public enum ResponseStatus {
     /**
      * Passwords(when entered your password again) do not match.
      */
-    PASSWORDS_DOESNT_MATCH,
+    PASSWORDS_DO_NOT_MATCH,
 
 
 

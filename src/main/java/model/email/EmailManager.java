@@ -13,13 +13,13 @@ import java.util.UUID;
 public interface EmailManager {
 
 
-    ResponseStatus sendEmail(UUID sender, UUID recipient, String subject, String body);
+    ResponseStatus sendEmail(String senderUsername, String recipientUsername, String subject, String body);
 
-    List<Email> getReceivedEmails(UUID userId);
+    List<Email> getReceivedEmails(String recipientUserName);
 
-    List<Email> getSentEmails(UUID userId);
+    List<Email> getSentEmails(String senderUserName);
 
-    ResponseStatus readEmail(Integer emailId);
+    ResponseStatus readEmail(Integer emailId, UUID userId);
 
-    List<Email> searchEmails(UUID userId, SearchType type, String subjectQuery);
+    List<Email> searchEmails(String userName, SearchType type, String subjectQuery);
 }
