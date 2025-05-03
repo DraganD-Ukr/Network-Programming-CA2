@@ -1,6 +1,5 @@
 package server;
 
-import auth.SessionManager;
 import model.email.EmailHandler;
 import model.email.EmailManager;
 import model.user.UserManager;
@@ -11,7 +10,6 @@ import java.net.Socket;
 
 public class ClientHandler implements Runnable {
     private final Socket socket;
-    private final SessionManager sessionManager;
     private final UserManager userManager;
     private final EmailManager emailManager;
     private final EmailHandler emailHandler;
@@ -20,13 +18,11 @@ public class ClientHandler implements Runnable {
     private String currentUser;
 
     public ClientHandler(Socket socket,
-                         SessionManager sessionManager,
                          UserManager userManager,
                          EmailManager emailManager,
                          EmailHandler emailHandler) {
         this.socket = socket;
         this.emailHandler = emailHandler;
-        this.sessionManager = sessionManager;
         this.userManager = userManager;
         this.emailManager = emailManager;
     }
@@ -43,7 +39,6 @@ public class ClientHandler implements Runnable {
                 return;
             }
 
-            sessionManager.addSession(socket, currentUser);
             out.write("Welcome, " + currentUser + "!\n");
             out.flush();
 
@@ -104,7 +99,7 @@ public class ClientHandler implements Runnable {
         String password = parts[2];
 
         if (command.equals("LOGIN")) {
-            if (userManager.login(username, password) == ResponseStatus.SUCCESS) {
+            if (userManager.login(username, password, socket) == ResponseStatus.SUCCESS) {
                 currentUser = username;
                 return true;
             } else {

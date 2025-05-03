@@ -132,9 +132,9 @@ public class EmailClient {
             if (verb.equals("QUIT") || verb.equals("EXIT")) {
                 sendLine("QUIT");
                 break;
-            }
-
-            if (verb.equals("SEND")){
+            } else if (verb.equals("LIST")) {
+                handleList();
+            } else if (verb.equals("SEND")){
                 handleSend(parts.length > 1 ? parts[1] : null);
             } else {
                 sendLine(cmd);
@@ -210,6 +210,21 @@ public class EmailClient {
         if (response == null) {
             System.out.println("Error: No response from server.");
             return;
+        }
+    }
+
+    private void handleList() throws IOException {
+        sendLine("LIST");
+
+        System.out.println("Fetching email list...");
+
+        String response;
+        try {
+            while ((response = reader.readLine()) != null && !response.equals(".")) {
+                System.out.println(response);
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading from server: " + e.getMessage());
         }
     }
 }
