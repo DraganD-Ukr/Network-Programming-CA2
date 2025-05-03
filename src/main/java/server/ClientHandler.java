@@ -1,6 +1,7 @@
 package server;
 
 import auth.SessionManager;
+import model.email.EmailHandler;
 import model.email.EmailManager;
 import model.user.UserManager;
 import service.ResponseStatus;
@@ -13,6 +14,7 @@ public class ClientHandler implements Runnable {
     private final SessionManager sessionManager;
     private final UserManager userManager;
     private final EmailManager emailManager;
+    private final EmailHandler emailHandler;
     private BufferedReader in;
     private BufferedWriter out;
     private String currentUser;
@@ -20,8 +22,10 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket socket,
                          SessionManager sessionManager,
                          UserManager userManager,
-                         EmailManager emailManager) {
+                         EmailManager emailManager,
+                         EmailHandler emailHandler) {
         this.socket = socket;
+        this.emailHandler = emailHandler;
         this.sessionManager = sessionManager;
         this.userManager = userManager;
         this.emailManager = emailManager;
@@ -42,6 +46,27 @@ public class ClientHandler implements Runnable {
             sessionManager.addSession(socket, currentUser);
             out.write("Welcome, " + currentUser + "!\n");
             out.flush();
+
+            String line;
+
+            while ((line = in.readLine()) != null) {
+                String[] parts = line.trim().split(" ", 2);
+                String command = parts[0].toUpperCase();
+
+                switch (command) {
+                    case "SEND":
+                        if (parts.length < 2) {
+                            out.write("ERROR SEND requires recipient username\n");
+                            out.flush();
+                        } else {
+                            if (emailHandler.handleSend(parts[1], currentUser, out, in)){
+                                out.write("Email sent successfully\n");
+                            } else {
+                                out.write("ERROR Failed to send email\n");
+                            }
+                        }
+                }
+            }
 
         } catch (Exception e) {
             System.err.println("Client handler error: " + e.getMessage());

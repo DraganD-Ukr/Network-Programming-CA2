@@ -67,5 +67,8 @@ public class UserManagerImpl implements UserManager {
         return ResponseStatus.SUCCESS;
     }
 
-
+    @Override
+    public User getUser(String username) {
+        return users.get(username);
+    }
 }

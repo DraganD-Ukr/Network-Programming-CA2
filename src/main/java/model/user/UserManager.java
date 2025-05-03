@@ -10,4 +10,5 @@ public interface UserManager {
 
     ResponseStatus logout(String username);
 
+    User getUser(String username);
 }

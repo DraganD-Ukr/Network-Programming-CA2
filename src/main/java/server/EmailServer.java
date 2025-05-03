@@ -3,6 +3,7 @@ package server;
 import auth.SessionManager;
 import auth.SessionManagerImpl;
 import lombok.extern.slf4j.Slf4j;
+import model.email.EmailHandler;
 import model.email.EmailManager;
 import model.email.EmailManagerImpl;
 import model.user.UserManager;
@@ -20,12 +21,14 @@ public class EmailServer {
     private final SessionManager sessionManager;
     private final UserManager userManager;
     private final EmailManager emailManager;
+    private final EmailHandler emailHandler;
 
     public EmailServer(int port) {
         this.port = port;
         this.sessionManager = new SessionManagerImpl();
         this.userManager = new UserManagerImpl();
         this.emailManager = new EmailManagerImpl();
+        this.emailHandler = new EmailHandler(sessionManager, userManager, emailManager);
     }
 
     public void start() throws IOException {
@@ -35,7 +38,7 @@ public class EmailServer {
                 Socket clientSocket = serverSocket.accept();
                 log.info("New client connected: {}", clientSocket.getInetAddress());
 
-                ClientHandler handler = new ClientHandler(clientSocket, sessionManager, userManager, emailManager);
+                ClientHandler handler = new ClientHandler(clientSocket, sessionManager, userManager, emailManager, emailHandler);
                 Thread thread = new Thread(handler);
                 thread.start();
             }
@@ -50,7 +53,7 @@ public class EmailServer {
             try {
                 port = Integer.parseInt(args[0]);
             } catch (NumberFormatException e) {
-                System.err.println("Invalid port number. Using default port " + PORT);
+                log.warn("Invalid port number {}, using default {}", args[0], PORT);
             }
         }
 
