@@ -10,84 +10,163 @@ public class EmailClient {
     private final String host;
     private final int port;
     private Socket socket;
-    private BufferedReader in;
-    private BufferedWriter out;
-    private Scanner console;
+    private BufferedReader reader;
+    private BufferedWriter writer;
+    private final Scanner console = new Scanner(System.in);
 
+    // Default constructor
     public EmailClient(String host, int port) {
         this.host = host;
         this.port = port;
-        this.console = new Scanner(System.in);
     }
 
+    // Constructor with default host and port
     public void start() {
         try {
-            socket = new Socket(host, port);
-            System.out.println("Connected to server " + host + ":" + port);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
-            new Thread(this::readServer).start();
-
-            while (true) {
-                String userInput = console.nextLine();
-                if (userInput == null || userInput.equalsIgnoreCase("quit")) {
-                    out.write("QUIT\n");
-                    out.flush();
-                    break;
-                }
-                out.write(userInput + "\n");
-                out.flush();
+            connect();
+            if (authenticate()) {
+                launchListener();
+                commandLoop();
             }
-        } catch (UnknownHostException e) {
+        } catch (UnknownHostException uhe) {
             System.err.println("Unknown host: " + host);
-        } catch (IOException e) {
-            System.err.println("I/O error: " + e.getMessage());
+        } catch (IOException ioe) {
+            System.err.println("I/O error: " + ioe.getMessage());
         } finally {
-            close();
+            shutdown();
         }
     }
 
-    private void readServer() {
-        try {
-            String line;
-            while ((line = in.readLine()) != null) {
-                System.out.println("Server: " + line);
+    /**
+     * Connects to the server.
+     *
+     * @throws IOException if an I/O error occurs when creating the socket or streams
+     */
+    private void connect() throws IOException {
+        socket = new Socket(host, port);
+        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        System.out.println("Connected to " + host + ":" + port);
+    }
+
+    /**
+     * Authenticates the user with the server.
+     *
+     * @return true if authentication is successful, false otherwise
+     * @throws IOException if an I/O error occurs while reading from or writing to the socket
+     */
+    private boolean authenticate() throws IOException {
+        String greeting = reader.readLine();
+        if (greeting == null) return false;
+        System.out.println(greeting);
+
+        while (true) {
+            System.out.print("[auth] > ");
+            String line = console.nextLine();
+            if (line == null) return false;
+            String[] tokens = line.trim().split(" ");
+            if (tokens.length != 3) {
+                System.out.println("Usage: LOGIN <user> <pass>  or  REGISTER <user> <pass>");
+                continue;
             }
-        } catch (IOException e) {
-            System.err.println("Error reading from server: " + e.getMessage());
-        } finally {
-            close();
+            String cmd = tokens[0].toUpperCase();
+            if (!cmd.equals("LOGIN") && !cmd.equals("REGISTER")) {
+                System.out.println("Supported: LOGIN or REGISTER");
+                continue;
+            }
+            sendLine(line);
+            String resp = reader.readLine();
+            if (resp == null) return false;
+            System.out.println(resp);
+            if (resp.startsWith(cmd + "_SUCCESS")) {
+                return true;
+            }
+            System.out.println("Failed - try again or type EXIT to quit");
+            if (line.equalsIgnoreCase("EXIT")) return false;
         }
     }
 
-    private void close() {
+    /**
+     * Launches a listener thread to read messages from the server.
+     */
+    private void launchListener() {
+        Thread listener = new Thread(() -> {
+            try {
+                String srvMsg;
+                while ((srvMsg = reader.readLine()) != null) {
+                    System.out.println(srvMsg);
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading from server: " + e.getMessage());
+            } finally {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    System.err.println("Error closing socket: " + e.getMessage());
+                }
+            }
+        });
+        listener.setDaemon(true);
+        listener.start();
+    }
+
+    /**
+     * Command loop to read user commands and send them to the server.
+     *
+     * @throws IOException if an I/O error occurs while reading from or writing to the socket
+     */
+    private void commandLoop() throws IOException {
+        while (true) {
+            System.out.print("[mail] > ");
+            String cmd = console.nextLine();
+            if (cmd == null) continue;
+            String verb = cmd.trim().split(" ", 2)[0].toUpperCase();
+            if (verb.equals("QUIT") || verb.equals("EXIT")) {
+                sendLine("QUIT");
+                break;
+            }
+            sendLine(cmd);
+        }
+    }
+
+    /**
+     * Sends a line of text to the server.
+     *
+     * @param line the line to send
+     * @throws IOException if an I/O error occurs while writing to the socket
+     */
+    private void sendLine(String line) throws IOException {
+        writer.write(line + "\n");
+        writer.flush();
+    }
+
+    /**
+     * Shuts down the client by closing the socket and console.
+     */
+    private void shutdown() {
         try {
-            if (in != null) in.close();
-            if (out != null) out.close();
             if (socket != null) socket.close();
-            if (console != null) console.close();
         } catch (IOException e) {
-            System.err.println("Error closing resources: " + e.getMessage());
+            System.err.println("Error closing socket: " + e.getMessage());
         }
+        console.close();
+        System.out.println("Disconnected.");
     }
 
+    /**
+     * Main method to start the EmailClient.
+     *
+     * @param args command line arguments
+     */
     public static void main(String[] args) {
         String host = "localhost";
         int port = 6969;
-
-        if (args.length > 0) {
+        if (args.length == 2) {
             host = args[0];
-        }
-        if (args.length > 1) {
             try {
                 port = Integer.parseInt(args[1]);
-            } catch (NumberFormatException e) {
-                System.err.println("Invalid port number, using default " + port);
-            }
+            } catch (NumberFormatException ignore) {}
         }
-
-        EmailClient client = new EmailClient(host, port);
-        client.start();
+        new EmailClient(host, port).start();
     }
 }
