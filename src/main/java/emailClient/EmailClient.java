@@ -136,6 +136,8 @@ public class EmailClient {
                 handleList();
             } else if (verb.equals("SEND")){
                 handleSend(parts.length > 1 ? parts[1] : null);
+            } else if (verb.equals("SEARCH")) {
+                handleSearch(parts.length > 1 ? parts[1] : "");
             } else {
                 sendLine(cmd);
             }
@@ -217,6 +219,26 @@ public class EmailClient {
         sendLine("LIST");
 
         System.out.println("Fetching email list...");
+
+        String response;
+        try {
+            while ((response = reader.readLine()) != null && !response.equals(".")) {
+                System.out.println(response);
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading from server: " + e.getMessage());
+        }
+    }
+
+    private void handleSearch(String search) throws IOException {
+        if (search == null || search.isEmpty()) {
+            System.out.println("Usage: SEARCH <search term>");
+            return;
+        }
+
+        sendLine("SEARCH " + search);
+
+        System.out.println("Searching for emails...");
 
         String response;
         try {
