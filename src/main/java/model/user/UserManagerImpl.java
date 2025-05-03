@@ -71,4 +71,8 @@ public class UserManagerImpl implements UserManager {
 
 
 
+    @Override
+    public User getUser(String username) {
+        return users.get(username);
+    }
 }

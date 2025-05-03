@@ -14,4 +14,5 @@ public interface UserManager {
 
     User getUserByUsername(String username);
 
+    User getUser(String username);
 }
