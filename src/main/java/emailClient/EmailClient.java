@@ -1,11 +1,14 @@
 package emailClient;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
 
+@Slf4j
 public class EmailClient {
     private final String host;
     private final int port;
@@ -117,14 +120,26 @@ public class EmailClient {
      */
     private void commandLoop() throws IOException {
         while (true) {
-            System.out.print("[mail] > ");
+            log.info("[mail] > ");
             String cmd = console.nextLine();
-            if (cmd == null) continue;
+            if (cmd == null) {
+                continue;
+            }
+
+            String[] parts = cmd.trim().split(" ", 2);
             String verb = cmd.trim().split(" ", 2)[0].toUpperCase();
+
             if (verb.equals("QUIT") || verb.equals("EXIT")) {
                 sendLine("QUIT");
                 break;
             }
+
+            if (verb.equals("SEND")){
+                handleSend(parts.length > 1 ? parts[1] : null);
+            } else {
+                sendLine(cmd);
+            }
+
             sendLine(cmd);
         }
     }
@@ -168,5 +183,33 @@ public class EmailClient {
             } catch (NumberFormatException ignore) {}
         }
         new EmailClient(host, port).start();
+    }
+
+    private void handleSend(String recipient) throws IOException {
+        if (recipient == null || recipient.isEmpty()) {
+            System.out.println("Usage: SEND <recipient>");
+            return;
+        }
+
+        sendLine("SEND " + recipient);
+
+        System.out.print("Enter subject: ");
+        String subject = console.nextLine();
+        sendLine(subject);
+
+        System.out.print("Enter body (end with a single '.' on its own line): ");
+        String line;
+
+        while (!(line = console.nextLine()).equals(".")) {
+            sendLine(line);
+        }
+
+        sendLine(".");
+
+        String response = reader.readLine();
+        if (response == null) {
+            System.out.println("Error: No response from server.");
+            return;
+        }
     }
 }
