@@ -50,18 +50,6 @@ public class UserManagerImpl implements UserManager {
 
     }
 
-    @Override
-    public ResponseStatus logout(String username, Socket socket) {
-
-        User user = users.get(username);
-
-        if (user == null) {
-            return ResponseStatus.USER_NOT_FOUND; // User not found
-        }
-
-
-        return ResponseStatus.SUCCESS;
-    }
 
     @Override
     public User getUserByUsername(String username) {

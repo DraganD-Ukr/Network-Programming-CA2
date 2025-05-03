@@ -10,8 +10,6 @@ public interface UserManager {
 
     ResponseStatus login(String username, String password, Socket socket);
 
-    ResponseStatus logout(String username, Socket socket);
-
     User getUserByUsername(String username);
 
     User getUser(String username);

@@ -50,6 +50,8 @@ public class ServiceClientHandler implements Runnable{
 
                 String requestType = requestParts[0];
 
+                log.info("Received request: {}", requestType);
+
                 switch (requestType) {
                     case EmailUtils.REGISTER :
                         response = handleRegister(requestParts);
@@ -131,6 +133,7 @@ public class ServiceClientHandler implements Runnable{
 
 
         if (requestParts.length != 4) {
+            log.error("Invalid register request! Expected 4 parts, got: {}", requestParts.length);
             return ResponseStatus.INVALID.toString();
         }
 
@@ -139,17 +142,20 @@ public class ServiceClientHandler implements Runnable{
         String confirmedPassword = requestParts[3];
 
         if (!password.equals(confirmedPassword)) {
+            log.error("Error in register request! Passwords do not match.");
             return ResponseStatus.PASSWORDS_DO_NOT_MATCH.toString();
         }
 
         ResponseStatus responseStatus = userManager.register(username, password);
         emailManager.initializeMailbox(username);
+        log.info("User registered successfully: " + username);
         return responseStatus.toString();
     }
 
     private String handleLogin(String[] requestParts) {
 
         if (requestParts.length != 3) {
+            log.error("Invalid login request! Expected 3 parts, got: {}", requestParts.length);
             return ResponseStatus.INVALID.toString();
         }
 
@@ -159,23 +165,32 @@ public class ServiceClientHandler implements Runnable{
         ResponseStatus responseStatus = userManager.login(username, password, clientDataSocket);
         loggedInUser = userManager.getUserByUsername(username);
 
+        log.info("User logged in successfully: {}", username);
         return responseStatus.toString();
     }
 
     private String handleLogout(String[] requestParts) {
 
         if (requestParts.length != 2) {
+            log.error("Invalid logout request! Expected 2 parts, got: {}", requestParts.length);
             return ResponseStatus.INVALID.toString();
         }
 
         String username = requestParts[1];
 
         ResponseStatus responseStatus = logoutUser(username);
+
+        if (responseStatus == ResponseStatus.SUCCESS) {
+            log.info("User logged out successfully: {}", username);
+        } else {
+            log.error("Error logging out user: {}", username);
+        }
         return responseStatus.toString();
     }
 
     private String handleSendEmail(String[] requestParts) {
         if (requestParts.length != 4) {
+            log.error("Invalid send email request! Expected 4 parts, got: {}", requestParts.length);
             return ResponseStatus.INVALID.toString();
         }
 
@@ -185,17 +200,27 @@ public class ServiceClientHandler implements Runnable{
         String content = requestParts[3];
 
         ResponseStatus responseStatus = emailManager.sendEmail(senderUsername, recipientUsername, subject, content);
+
+        if (responseStatus == ResponseStatus.SUCCESS) {
+            log.info("Email sent successfully from {} to {}", senderUsername, recipientUsername);
+        } else {
+            log.error("Error sending email from {} to {}: {}", senderUsername, recipientUsername, responseStatus);
+        }
         return responseStatus.toString();
     }
 
     private String handleGetReceivedEmails(String[] requestParts) {
-        if (requestParts.length != 2) {
+        if (requestParts.length != 1) {
+            log.error("Invalid get received emails request! Expected 2 parts, got: {}", requestParts.length);
             return ResponseStatus.INVALID.toString();
         }
 
         String recipientUsername = loggedInUser.getUsername();
 
         List<Email> receivedEmails = emailManager.getReceivedEmails(recipientUsername);
+
+        log.info("Received emails for user {}: {}", recipientUsername, receivedEmails.size());
+
         return receivedEmails.toString();
     }
 
@@ -204,6 +229,8 @@ public class ServiceClientHandler implements Runnable{
         String senderUsername = loggedInUser.getUsername();
 
         List<Email> sentEmails = emailManager.getSentEmails(senderUsername);
+
+        log.info("Sent emails for user {}: {}", senderUsername, sentEmails.size());
         return serializeEmails(sentEmails);
     }
 
@@ -218,8 +245,10 @@ public class ServiceClientHandler implements Runnable{
         Optional<Email> result = emailManager.readEmail(emailId, userName);
 
         if (result.isPresent()) {
+            log.info("Email read successfully: {}", result.get());
             return serializeEmail(result.get());
         } else {
+            log.error("Error reading email with ID {}: Email not found", emailId);
             return ResponseStatus.RESOURCE_NOT_FOUND.toString();
         }
 
@@ -227,6 +256,7 @@ public class ServiceClientHandler implements Runnable{
 
     private String handleSearchEmail(String[] requestParts) {
         if (requestParts.length != 3) {
+            log.error("Invalid search email request! Expected 3 parts, got: {}", requestParts.length);
             return ResponseStatus.INVALID.toString();
         }
 
@@ -242,16 +272,28 @@ public class ServiceClientHandler implements Runnable{
 
         List<Email> result = emailManager.searchEmails(userName, searchType, subjectQuery);
 
+        if (result.isEmpty()) {
+            log.info("No emails found for user {} with subject query: {}", userName, subjectQuery);
+        }
+
         return serializeEmails(result);
     }
 
 
     private ResponseStatus logoutUser(String username){
-        ResponseStatus responseStatus = userManager.logout(username, clientDataSocket);
-        if (responseStatus == ResponseStatus.SUCCESS) {
+
+        String result;
+
+        if (loggedInUser != null) {
             loggedInUser = null;
+            log.info("User logged out successfully: {}", username);
+            result = ResponseStatus.SUCCESS.toString();
+        } else {
+            log.error("Error logging out user: {}. User is not logged in", username);
+            result = ResponseStatus.USER_NOT_LOGGED_IN.toString();
         }
-        return responseStatus;
+
+        return ResponseStatus.valueOf(result);
     }
 
     private String serializeEmails(List<Email> emails) {
