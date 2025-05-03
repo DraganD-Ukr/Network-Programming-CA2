@@ -200,9 +200,6 @@ public class ServiceClientHandler implements Runnable{
     }
 
     private String handleGetSentEmails(String[] requestParts) {
-        if (requestParts.length != 2) {
-            return ResponseStatus.INVALID.toString();
-        }
 
         String senderUsername = loggedInUser.getUsername();
 
