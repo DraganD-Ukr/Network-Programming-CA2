@@ -14,7 +14,7 @@ public class EmailUtils {
     public static final String READ_EMAIL = "READ_EMAIL";
     public static final String SEARCH_EMAIL = "SEARCH_DETAILS";
     public static final String LOGOUT = "LOGOUT";
-    private static final String NOTIFICATION = "NEW_EMAIL";
+    public static final String NOTIFICATION = "NEW_EMAIL";
 
 
     // DELIMITERS

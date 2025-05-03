@@ -1,7 +1,6 @@
 package model.user;
 
-import auth.SessionManager;
-import auth.SessionManagerImpl;
+
 import service.ResponseStatus;
 
 import java.net.Socket;
@@ -10,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class UserManagerImpl implements UserManager {
 
-    private final SessionManager sessionManager = new SessionManagerImpl();
     private final ConcurrentHashMap<String, User> users = new ConcurrentHashMap<>();
 
     @Override
@@ -43,13 +41,11 @@ public class UserManagerImpl implements UserManager {
         if (user == null) {
             return ResponseStatus.INVALID_USERNAME_OR_PASSWORD; // User not found
         }
-        if (isUserLoggedIn(socket)) {
-            return ResponseStatus.USER_ALREADY_LOGGED;
-        }
+
         if (!user.getPassword().equals(password)) {
             return ResponseStatus.INVALID_USERNAME_OR_PASSWORD; // Invalid password
         }
-        sessionManager.addSession(socket, username);
+
         return ResponseStatus.SUCCESS;
 
     }
@@ -62,11 +58,8 @@ public class UserManagerImpl implements UserManager {
         if (user == null) {
             return ResponseStatus.USER_NOT_FOUND; // User not found
         }
-        if (!isUserLoggedIn(socket)) {
-            return ResponseStatus.USER_NOT_LOGGED_IN; // User already logged out
-        }
 
-        sessionManager.removeSession(socket);
+
         return ResponseStatus.SUCCESS;
     }
 
@@ -75,9 +68,7 @@ public class UserManagerImpl implements UserManager {
         return users.get(username);
     }
 
-    private boolean isUserLoggedIn(Socket socket) {
-        return sessionManager.getUsername(socket) != null;
-    }
+
 
 
 }

@@ -3,7 +3,7 @@ package model.email;
 import service.ResponseStatus;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 /**
  * Interface for managing email operations.
@@ -12,6 +12,7 @@ import java.util.UUID;
  */
 public interface EmailManager {
 
+    void initializeMailbox(String userName);
 
     ResponseStatus sendEmail(String senderUsername, String recipientUsername, String subject, String body);
 
@@ -19,7 +20,7 @@ public interface EmailManager {
 
     List<Email> getSentEmails(String senderUserName);
 
-    ResponseStatus readEmail(Integer emailId, UUID userId);
+    Optional<Email> readEmail(Integer emailId, String userName);
 
     List<Email> searchEmails(String userName, SearchType type, String subjectQuery);
 }

@@ -3,22 +3,29 @@ package model.email;
 import service.ResponseStatus;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class EmailManagerImpl implements EmailManager {
 
     private final AtomicInteger emailIdGenerator = new AtomicInteger(0);
-    private final ConcurrentHashMap<String, ArrayList<Email>> emails;
+    private final ConcurrentHashMap<String, CopyOnWriteArrayList<Email>> emails;
 
     public EmailManagerImpl() {
        this.emails = new ConcurrentHashMap<>();
     }
 
 
+    @Override
+    public void initializeMailbox(String userName) {
+        emails.put(userName, new CopyOnWriteArrayList<>());
+    }
+
+
+    @Override
     public ResponseStatus sendEmail(String senderUsername, String recipientUsername, String subject, String body) {
 
         int emailId = emailIdGenerator.incrementAndGet();
@@ -40,6 +47,7 @@ public class EmailManagerImpl implements EmailManager {
     }
 
 
+    @Override
     public List<Email> getReceivedEmails(String recipientUserName) {
 
         return emails.get(recipientUserName).stream()
@@ -48,6 +56,7 @@ public class EmailManagerImpl implements EmailManager {
 
     }
 
+    @Override
     public List<Email> getSentEmails(String senderUserName) {
 
         return emails.get(senderUserName).stream()
@@ -56,22 +65,24 @@ public class EmailManagerImpl implements EmailManager {
 
     }
 
-    public ResponseStatus readEmail(Integer emailId, UUID userId) {
+    @Override
+    public Optional<Email> readEmail(Integer emailId, String userName) {
 
-        Email email = emails.get(userId).stream()
+         Optional<Email> email = emails.getOrDefault(userName, new CopyOnWriteArrayList<>()).stream()
                 .filter(m -> m.getId() == emailId)
                 .findFirst()
-                .orElse(null);
+                .map(e -> {
+                    e.setRead(true);
+                    return e;
+                });
 
 
-        if (email == null) {
-            return ResponseStatus.RESOURCE_NOT_FOUND;
-        }
+        email.ifPresent(value -> value.setRead(true));
 
-        email.setRead(true);
-        return ResponseStatus.SUCCESS;
+        return email;
     }
 
+    @Override
     public List<Email> searchEmails(String userName, SearchType type, String subjectQuery){
 
         return emails.get(userName).stream()
