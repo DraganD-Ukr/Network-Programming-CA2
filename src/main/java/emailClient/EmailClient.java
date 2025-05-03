@@ -127,10 +127,13 @@ public class EmailClient {
             }
 
             String[] parts = cmd.trim().split(" ", 2);
-            String verb = cmd.trim().split(" ", 2)[0].toUpperCase();
+            String verb = parts[0].toUpperCase();
 
-            if (verb.equals("QUIT") || verb.equals("EXIT")) {
+            if (verb.equals("QUIT")) {
                 sendLine("QUIT");
+                break;
+            } else if (verb.equals("EXIT")) {
+                System.out.println("Exiting client.");
                 break;
             } else if (verb.equals("LIST")) {
                 handleList();
@@ -150,8 +153,6 @@ public class EmailClient {
             } else {
                 sendLine(cmd);
             }
-
-            sendLine(cmd);
         }
     }
 
