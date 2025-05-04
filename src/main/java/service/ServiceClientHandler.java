@@ -147,10 +147,19 @@ public class ServiceClientHandler implements Runnable{
             return ResponseStatus.PASSWORDS_DO_NOT_MATCH.toString();
         }
 
-        ResponseStatus responseStatus = userManager.register(username, password);
-        emailManager.initializeMailbox(username);
-        log.info("User registered successfully: " + username);
-        return responseStatus.toString();
+        String result = null;
+
+        try {
+            ResponseStatus responseStatus = userManager.register(username, password);
+            emailManager.initializeMailbox(username);
+            result = responseStatus.toString();
+        } catch (Exception e) {
+            log.error("Error in register request! Username already exists: {}", username);
+            result = ResponseStatus.USER_ALREADY_EXISTS.toString();
+        }
+
+        return result;
+
     }
 
     private String handleLogin(String[] requestParts) {
