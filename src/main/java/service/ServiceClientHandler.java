@@ -150,16 +150,17 @@ public class ServiceClientHandler implements Runnable{
         String result = null;
 
         try {
-            ResponseStatus responseStatus = userManager.register(username, password);
-            emailManager.initializeMailbox(username);
-            result = responseStatus.toString();
+            ResponseStatus status = userManager.register(username, password);
+            if (status == ResponseStatus.SUCCESS) {
+                emailManager.initializeMailbox(username);
+                loggedInUser = userManager.getUserByUsername(username);
+                log.info("User registered (and auto-logged in): {}", username);
+            }
+            return status.toString();
         } catch (Exception e) {
             log.error("Error in register request! Username already exists: {}", username);
-            result = ResponseStatus.USER_ALREADY_EXISTS.toString();
+            return ResponseStatus.USER_ALREADY_EXISTS.toString();
         }
-
-        return result;
-
     }
 
     private String handleLogin(String[] requestParts) {
@@ -346,7 +347,4 @@ public class ServiceClientHandler implements Runnable{
                 email.isRead();
 
     }
-
-
-
 }
