@@ -8,7 +8,6 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 
-@Slf4j
 public class EmailClient {
     private final String host;
     private final int port;
@@ -17,17 +16,34 @@ public class EmailClient {
     private BufferedWriter writer;
     private final Scanner console = new Scanner(System.in);
 
-    // Default constructor
+    /**
+     * Constructor for EmailClient.
+     *
+     * @param host the server host
+     * @param port the server port
+     */
     public EmailClient(String host, int port) {
         this.host = host;
         this.port = port;
     }
 
-    // Constructor with default host and port
+    /**
+     * Starts the email client.
+     */
     public void start() {
         try {
             connect();
             if (authenticate()) {
+                System.out.println("\nAvailable commands:");
+                System.out.println("  SEND <user>           – send an email");
+                System.out.println("  LIST                  – list received emails");
+                System.out.println("  SEARCH <term>         – search received emails");
+                System.out.println("  SENT                  – list sent emails");
+                System.out.println("  SEARCH_SENT <term>    – search sent emails");
+                System.out.println("  RETR <emailId>        – read a specific email");
+                System.out.println("  LOGOUT                – log out of session");
+                System.out.println("  EXIT                  – exit client");
+                System.out.println();
                 launchListener();
                 commandLoop();
             }
@@ -59,33 +75,46 @@ public class EmailClient {
      * @throws IOException if an I/O error occurs while reading from or writing to the socket
      */
     private boolean authenticate() throws IOException {
-        String greeting = reader.readLine();
-        if (greeting == null) return false;
-        System.out.println(greeting);
+        if (reader.ready()) {
+            String greeting = reader.readLine();
+            if (greeting != null) System.out.println(greeting);
+        }
+
+        // Show the auth menu
+        System.out.println("\nPlease choose:");
+        System.out.println("  LOGIN <username> <password>");
+        System.out.println("  REGISTER <username> <password>");
+        System.out.println("  EXIT");
+        System.out.println();
 
         while (true) {
             System.out.print("[auth] > ");
             String line = console.nextLine();
             if (line == null) return false;
-            String[] tokens = line.trim().split(" ");
-            if (tokens.length != 3) {
-                System.out.println("Usage: LOGIN <user> <pass>  or  REGISTER <user> <pass>");
-                continue;
-            }
+
+            String[] tokens = line.trim().split("\\s+");
             String cmd = tokens[0].toUpperCase();
-            if (!cmd.equals("LOGIN") && !cmd.equals("REGISTER")) {
-                System.out.println("Supported: LOGIN or REGISTER");
+
+            if (cmd.equals("EXIT")) {
+                System.out.println("Exiting client.");
+                return false;
+            }
+
+            if (tokens.length != 3 || (!cmd.equals("LOGIN") && !cmd.equals("REGISTER"))) {
+                System.out.println("Usage: LOGIN <user> <pass>  or  REGISTER <user> <pass>  or  EXIT");
                 continue;
             }
+
             sendLine(line);
             String resp = reader.readLine();
             if (resp == null) return false;
             System.out.println(resp);
+
             if (resp.startsWith(cmd + "_SUCCESS")) {
                 return true;
             }
-            System.out.println("Failed - try again or type EXIT to quit");
-            if (line.equalsIgnoreCase("EXIT")) return false;
+
+            System.out.println("Authentication failed. Try again or type EXIT.");
         }
     }
 
@@ -120,7 +149,7 @@ public class EmailClient {
      */
     private void commandLoop() throws IOException {
         while (true) {
-            log.info("[mail] > ");
+            System.out.print("[mail] > ");
             String cmd = console.nextLine();
             if (cmd == null) {
                 continue;
@@ -197,6 +226,12 @@ public class EmailClient {
         new EmailClient(host, port).start();
     }
 
+    /**
+     * Handles the sending of an email.
+     *
+     * @param recipient the recipient of the email
+     * @throws IOException if an I/O error occurs while reading from or writing to the socket
+     */
     private void handleSend(String recipient) throws IOException {
         if (recipient == null || recipient.isEmpty()) {
             System.out.println("Usage: SEND <recipient>");
@@ -240,6 +275,12 @@ public class EmailClient {
         }
     }
 
+    /**
+     * Handles the search for emails.
+     *
+     * @param search the search term
+     * @throws IOException if an I/O error occurs while reading from or writing to the socket
+     */
     private void handleSearch(String search) throws IOException {
         if (search == null || search.isEmpty()) {
             System.out.println("Usage: SEARCH <search term>");
@@ -260,6 +301,11 @@ public class EmailClient {
         }
     }
 
+    /**
+     * Handles the retrieval of sent emails.
+     *
+     * @throws IOException if an I/O error occurs while reading from or writing to the socket
+     */
     private void handleSent() throws IOException {
         sendLine("SENT");
 
@@ -275,6 +321,12 @@ public class EmailClient {
         }
     }
 
+    /**
+     * Handles the search for sent emails.
+     *
+     * @param search the search term
+     * @throws IOException if an I/O error occurs while reading from or writing to the socket
+     */
     private void handleSearchSent(String search) throws IOException {
         if (search == null || search.isEmpty()) {
             System.out.println("Usage: SEARCH_SENT <search term>");
@@ -295,6 +347,12 @@ public class EmailClient {
         }
     }
 
+    /**
+     * Handles the retrieval of a specific email.
+     *
+     * @param emailId the ID of the email to retrieve
+     * @throws IOException if an I/O error occurs while reading from or writing to the socket
+     */
     private void handleRetrieve(String emailId) throws IOException {
         if (emailId == null || emailId.isEmpty()) {
             System.out.println("Usage: RETRIEVE <email ID>");
@@ -315,6 +373,11 @@ public class EmailClient {
         }
     }
 
+    /**
+     * Handles the logout process.
+     *
+     * @throws IOException if an I/O error occurs while reading from or writing to the socket
+     */
     private void handleLogout() throws IOException {
         sendLine("LOGOUT");
         System.out.println("Logging out...");

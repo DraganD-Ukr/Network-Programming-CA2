@@ -1,23 +1,17 @@
 package model.email;
 
-import auth.SessionManager;
 import model.user.UserManager;
-import model.user.UserManagerImpl;
 import service.ResponseStatus;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.util.UUID;
 
 public class EmailHandler {
-    private final SessionManager sessionManager;
     private final UserManager userManager;
     private final EmailManager emailManager;
 
-    public EmailHandler(SessionManager sessionManager,
-                        UserManager userManager,
+    public EmailHandler(UserManager userManager,
                         EmailManager emailManager){
-        this.sessionManager = sessionManager;
         this.userManager = userManager;
         this.emailManager = emailManager;
     }
