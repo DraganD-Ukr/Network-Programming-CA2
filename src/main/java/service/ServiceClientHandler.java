@@ -223,17 +223,15 @@ public class ServiceClientHandler implements Runnable{
 
     private String handleGetReceivedEmails(String[] requestParts) {
         if (requestParts.length != 1) {
-            log.error("Invalid get received emails request! Expected 2 parts, got: {}", requestParts.length);
+            log.error("Invalid get received emails request! Expected 1 part, got: {}", requestParts.length);
             return ResponseStatus.INVALID.toString();
         }
 
         String recipientUsername = loggedInUser.getUsername();
-
         List<Email> receivedEmails = emailManager.getReceivedEmails(recipientUsername);
-
         log.info("Received emails for user {}: {}", recipientUsername, receivedEmails.size());
 
-        return receivedEmails.toString();
+        return serializeEmails(receivedEmails);
     }
 
     private String handleGetSentEmails(String[] requestParts) {
