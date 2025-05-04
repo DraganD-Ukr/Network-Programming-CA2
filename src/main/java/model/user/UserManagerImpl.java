@@ -14,6 +14,10 @@ public class UserManagerImpl implements UserManager {
     @Override
     public ResponseStatus register(String username, String password) {
 
+        if (username == null || password == null) {
+            return ResponseStatus.INVALID_USERNAME_OR_PASSWORD; // Invalid input
+        }
+
         if (users.containsKey(username)) {
             return ResponseStatus.USER_ALREADY_EXISTS; // User already exists
         }
