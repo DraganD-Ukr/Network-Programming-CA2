@@ -63,7 +63,7 @@ public class ServiceClientHandler implements Runnable{
                         break;
 
                     case EmailUtils.LOGOUT :
-                        handleLogout(requestParts);
+                        response = handleLogout(requestParts);
                         validClientSession = false;
                         break;
 
@@ -170,7 +170,6 @@ public class ServiceClientHandler implements Runnable{
     }
 
     private String handleLogout(String[] requestParts) {
-
         if (requestParts.length != 2) {
             log.error("Invalid logout request! Expected 2 parts, got: {}", requestParts.length);
             return ResponseStatus.INVALID.toString();
@@ -178,14 +177,9 @@ public class ServiceClientHandler implements Runnable{
 
         String username = requestParts[1];
 
-        ResponseStatus responseStatus = logoutUser(username);
-
-        if (responseStatus == ResponseStatus.SUCCESS) {
-            log.info("User logged out successfully: {}", username);
-        } else {
-            log.error("Error logging out user: {}", username);
-        }
-        return responseStatus.toString();
+        loggedInUser = null;
+        log.info("User logged out: {}", username);
+        return ResponseStatus.SUCCESS.toString();
     }
 
     private String handleSendEmail(String[] requestParts) {
