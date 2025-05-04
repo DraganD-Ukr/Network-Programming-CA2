@@ -26,7 +26,7 @@ public class EmailClient {
     }
 
     public void start() {
-        log("Starting client");
+        //log("Starting client");
         try {
             connect();
             Scanner console = new Scanner(System.in);
@@ -37,7 +37,7 @@ public class EmailClient {
                     break;
                 }
 
-                log("User authenticated: " + currentUsername);
+                //log("User authenticated: " + currentUsername);
 
                 boolean inSession = true;
                 while (inSession) {
@@ -69,13 +69,13 @@ public class EmailClient {
                             handleRead(parts.length > 1 ? parts[1] : "");
                             break;
                         case "LOGOUT":
-                            log("Logging out user " + currentUsername);
+                            //log("Logging out user " + currentUsername);
                             handleLogout();
                             currentUsername = null;
                             inSession = false;
                             break;
                         case "EXIT":
-                            log("Exiting client");
+                            //log("Exiting client");
                             handleExit();
                             inSession = false;
                             running = false;
@@ -88,21 +88,21 @@ public class EmailClient {
 
             console.close();
         } catch (UnknownHostException e) {
-            log("Unknown host: " + e.getMessage());
+            //log("Unknown host: " + e.getMessage());
         } catch (IOException e) {
-            log("I/O error: " + e.getMessage());
+            //log("I/O error: " + e.getMessage());
         } finally {
             shutdown();
-            log("Client terminated");
+            //log("Client terminated");
         }
     }
 
     private void connect() throws IOException {
-        log("Connecting to " + host + ":" + port);
+        //log("Connecting to " + host + ":" + port);
         socket = new Socket(host, port);
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        log("Connection established");
+        //log("Connection established");
     }
 
     private boolean showAuthentication(Scanner console) throws IOException {
@@ -135,7 +135,7 @@ public class EmailClient {
                 currentUsername = user;
 
                 String resp = reader.readLine();
-                log("Auth response: " + resp);
+                //log("Auth response: " + resp);
                 System.out.println(resp);
                 if (resp != null && resp.startsWith("SUCCESS")) {
                     return true;
@@ -205,11 +205,11 @@ public class EmailClient {
         writer.write(line);
         writer.newLine();
         writer.flush();
-        log("Sent: " + line);
+        //log("Sent: " + line);
     }
 
     private void shutdown() {
-        log("Shutting down client");
+        //log("Shutting down client");
         try {
             if (writer != null) writer.close();
             if (reader != null) reader.close();
