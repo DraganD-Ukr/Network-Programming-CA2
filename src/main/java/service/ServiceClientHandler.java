@@ -35,6 +35,8 @@ public class ServiceClientHandler implements Runnable{
     public void run() {
 
         try {
+
+//            Valid client exception can be used for EXIT request, etc..
             boolean validClientSession = true;
 
 
@@ -64,7 +66,6 @@ public class ServiceClientHandler implements Runnable{
 
                     case EmailUtils.LOGOUT :
                         response = handleLogout(requestParts);
-                        validClientSession = false;
                         break;
 
                     case EmailUtils.SEND_EMAIL:
@@ -170,6 +171,7 @@ public class ServiceClientHandler implements Runnable{
     }
 
     private String handleLogout(String[] requestParts) {
+
         if (requestParts.length != 2) {
             log.error("Invalid logout request! Expected 2 parts, got: {}", requestParts.length);
             return ResponseStatus.INVALID.toString();
@@ -177,9 +179,15 @@ public class ServiceClientHandler implements Runnable{
 
         String username = requestParts[1];
 
-        loggedInUser = null;
-        log.info("User logged out: {}", username);
-        return ResponseStatus.SUCCESS.toString();
+        ResponseStatus responseStatus = logoutUser(username);
+
+        if (responseStatus == ResponseStatus.SUCCESS) {
+            loggedInUser = null;
+            log.info("User logged out successfully: {}", username);
+        } else {
+            log.error("Error logging out user: {}", username);
+        }
+        return responseStatus.toString();
     }
 
     private String handleSendEmail(String[] requestParts) {

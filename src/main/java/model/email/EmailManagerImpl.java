@@ -21,6 +21,9 @@ public class EmailManagerImpl implements EmailManager {
 
     @Override
     public void initializeMailbox(String userName) {
+        if (emails.containsKey(userName)) {
+            throw new IllegalArgumentException("Mailbox already exists for user: " + userName);
+        }
         emails.put(userName, new CopyOnWriteArrayList<>());
     }
 
