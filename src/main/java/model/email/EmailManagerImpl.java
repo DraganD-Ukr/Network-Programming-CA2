@@ -1,5 +1,6 @@
 package model.email;
 
+import lombok.extern.slf4j.Slf4j;
 import service.ResponseStatus;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Slf4j
 public class EmailManagerImpl implements EmailManager {
 
     private final AtomicInteger emailIdGenerator = new AtomicInteger(0);
@@ -30,6 +32,14 @@ public class EmailManagerImpl implements EmailManager {
 
     @Override
     public ResponseStatus sendEmail(String senderUsername, String recipientUsername, String subject, String body) {
+
+        if (checkIfNull(senderUsername, recipientUsername, subject, body)) {
+            return ResponseStatus.INVALID; // Invalid input
+        }
+
+        if (!emails.containsKey(senderUsername) || !emails.containsKey(recipientUsername)) {
+            return ResponseStatus.USER_NOT_FOUND; // User not found
+        }
 
         int emailId = emailIdGenerator.incrementAndGet();
 
@@ -100,6 +110,16 @@ public class EmailManagerImpl implements EmailManager {
                 .toList();
     }
 
+
+    private boolean checkIfNull(String... strings){
+        for (String string : strings) {
+            if (string == null || string.isEmpty()) {
+                log.debug("Invalid input: {}", string);
+                return true;
+            }
+        }
+        return false;
+    }
 
 
 }
